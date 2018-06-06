@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+
+    <jmxConfigurator/>
+
+    <timestamp key="byDay" datePattern="MMddyyyy" />
+
+    <!-- standard console appender -->
+    <Appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{MM/dd/yyyy HH:mm:ss:SSS} %-20.20C{1} [%-8.8t] %-5.5p - %m%n</pattern>
+        </encoder>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeCallerInfo>true</includeCallerInfo>
+            <customFields>{"appname":"tdm-service", "platform":"nmlv-nonprod"}</customFields>
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <message>log</message>
+                <level>log_level</level>
+            </fieldNames>
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                <maxDepthPerThrowable>40</maxDepthPerThrowable>
+                <maxLength>768</maxLength>
+            </throwableConverter>
+        </encoder>
+    </Appender>
+
+    <Logger name="com.nmlv" level="DEBUG" />
+
+    <Logger name="org.flywaydb.core" level="OFF" />
+
+    <Logger name="net.sf.jmimemagic" level="OFF" />
+
+    <Logger name="springfox" level="OFF" />
+
+    <Logger name="org.apache" level="OFF" />
+
+    <Logger name="httpclient" level="OFF" />
+
+    <Root level="INFO">
+        <appender-ref ref="stdout" />
+    </Root>
+
+</Configuration>

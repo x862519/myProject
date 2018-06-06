@@ -1,0 +1,437 @@
+package com.nmlv.testengineering.codechallenge.util;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
+import org.junit.Ignore;
+import org.junit.Test;
+
+import com.nmlv.testengineering.codechallenge.model.cards.Card;
+import com.nmlv.testengineering.codechallenge.model.cards.Deck;
+import com.nmlv.testengineering.codechallenge.model.cards.Game;
+import com.nmlv.testengineering.codechallenge.model.cards.Player;
+
+import static org.junit.Assert.*;
+
+public class CardDealerUnitTest {
+
+    /**
+     * {@link CardDealer} is a utility class and as such it should only contains static methods.
+     * This test verifies that the {@link CardDealer} object only contains a private constructor
+     * so that all of its methods will be provided statically.
+     */
+    @Test
+    public void verifyConstructorIsPrivate() throws Exception {
+        Constructor<CardDealer> constructor = CardDealer.class.getDeclaredConstructor();
+        assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+        constructor.setAccessible(true);
+        constructor.newInstance();
+    }
+
+    /**
+     * {@link CardDealer} is a utility class and as such it should only contains static methods.
+     * This test verifies that the {@link CardDealer} object does not contain any public constructors
+     * so that all of its methods will be provided statically.
+     */
+    @Test
+    public void verifyOnlyPrivateConstructors() {
+        assertEquals(0, CardDealer.class.getConstructors().length);
+    }
+
+    /**
+     * TODO: Test Engineering Open Code Challenge
+     * TODO: The following class is currently ignored via the @Ignore annotation because the supporting code is incomplete
+     * Compare an unshuffled {@link Deck} of {@link Card}s with a shuffled {@link Deck} of {@link Card}s
+     * that is produced by {@link CardDealer#shuffle}.
+     */
+
+	 // add a new check to make sure number of cards are the same after shuffle
+    // Test cards order before and after shuffle are different
+	// Test cards number are remain the same
+	@Test
+    public void shuffleDeck() {
+        Deck deckToShuffle = new Deck();
+        Deck unshuffledDeck = new Deck();
+        
+        assertEquals(deckToShuffle, unshuffledDeck);
+        assertEquals(deckToShuffle.getCards(), unshuffledDeck.getCards());
+
+        CardDealer.shuffle(deckToShuffle);        
+        assertEquals("before and after shuffle, number of cards should be the same.",deckToShuffle.getCards().size(), unshuffledDeck.getCards().size());
+        assertNotEquals(deckToShuffle, unshuffledDeck);
+        assertNotEquals(deckToShuffle.getCards(), unshuffledDeck.getCards());
+        
+        
+        
+    }
+	
+	// Test no missing or duplicate cards after shuffle
+	@Test
+    public void shuffleDeck2() {
+		Deck deckToShuffle = new Deck();
+
+		CardDealer.shuffle(deckToShuffle);  
+		
+		HashSet<Integer> hs = new HashSet<Integer>();
+
+		for(int i=0;i<deckToShuffle.getCards().size();i++){
+			Card card = deckToShuffle.getCards().get(i);
+			assertNotNull(card);
+			
+			int value=getCardIndex(card);
+			assertTrue(value>0);
+			assertTrue(value<=52);
+			assertTrue(hs.add(value));
+		}
+
+
+	}
+
+   
+
+	/**
+     * TODO: Test Engineering Open Code Challenge
+     * TODO: The following class is currently ignored via the @Ignore annotation because the supporting code is incomplete
+     * Compare the unshuffled cards produced by {@link Deck#getCards} with the shuffled cards that is produced by
+     * {@link CardDealer#shuffle}.
+     */
+    
+	// Test cards order before and after shuffle are different
+	// Test cards number are remain the same
+    @Test
+    public void shuffleListOfCards() {
+        List<Card> cardsToShuffle = new Deck().getCards();
+        List<Card> unshuffledCards = new Deck().getCards();
+        assertEquals(cardsToShuffle, unshuffledCards);
+
+        CardDealer.shuffle(cardsToShuffle);
+        assertEquals("before and after shuffle, card numbers should be the same.",cardsToShuffle.size(), unshuffledCards.size());
+        assertNotEquals(cardsToShuffle, unshuffledCards);
+    }
+    
+    // Test no missing or duplicate cards after shuffle
+    @Test
+    public void shuffleListOfCards2() {
+    	List<Card> cardsToShuffle = new Deck().getCards();
+
+    	CardDealer.shuffle(cardsToShuffle);
+		
+		HashSet<Integer> hs = new HashSet<Integer>();
+
+		for(int i=0;i<cardsToShuffle.size();i++){
+			Card card = cardsToShuffle.get(i);
+			assertNotNull(card);
+			
+			int value=getCardIndex(card);
+			assertTrue(value>0);
+			assertTrue(value<=52);
+			assertTrue(hs.add(value));
+		}
+
+
+	}
+
+    /**
+     * TODO: Test Engineering Open Code Challenge
+     * Verify that {@link CardDealer#deal(List, Deck)} correctly deals {@link Card}s to all of the
+     * {@link Player}s provided. Don't just do a happy path approach!
+     */
+    
+    // Test deal all cards to 3 players
+    @Test
+    public void deal() {
+        // get a deck of cards
+        Deck deck = new Deck();
+
+        //generate 3 players
+        List<Player> players = new ArrayList<>();
+        createPlayers(players,3);
+
+        Game game = CardDealer.deal(players, deck);
+        assertNotNull(game);
+
+        // Test each player gets 17 cards
+        // Test all cards in players and undealted cards equal a complete set of deck 
+        HashSet<Integer> hs = new HashSet<Integer>();
+        int remainingCards=deck.getCards().size();
+        for(int i=0;i<players.size();i++) {
+        	assertTrue(game.getPlayers().get(i).getCards().size()==deck.getCards().size()/players.size());
+            remainingCards-=game.getPlayers().get(i).getCards().size();
+            // Test each card is unique,, no duplicate
+            for(int j=0;j<game.getPlayers().get(i).getCards().size();j++) {
+            	Card card=game.getPlayers().get(i).getCards().get(j);
+            	int value=getCardIndex(card);
+    			assertTrue(value>0);
+    			assertTrue(value<=52);
+    			assertTrue(hs.add(value));
+            }
+        }        
+        // Test undealted card=1
+        assertTrue(game.getUndealtCards().size()==remainingCards);
+        // Test each card is unique,, no duplicate
+        for(int j=0;j<game.getUndealtCards().size();j++) {
+        	Card card=game.getUndealtCards().get(j);
+        	int value=getCardIndex(card);
+			assertTrue(value>0);
+			assertTrue(value<=52);
+			assertTrue(hs.add(value));
+        }
+        
+    }
+    
+    // Test deal all cards to 13 players
+    // Test no unDealted card
+    @Test
+    public void dealTo13() {
+        // get a deck of cards
+        Deck deck = new Deck();
+
+        //generate 13 players
+        List<Player> players = new ArrayList<>();
+        createPlayers(players,13);
+
+        Game game = CardDealer.deal(players, deck);
+        assertNotNull(game);
+
+        // Test each player gets 4 cards
+        // Test all cards in players and undealted cards equal a complete set of deck 
+        HashSet<Integer> hs = new HashSet<Integer>();
+        for(int i=0;i<players.size();i++) {
+        	assertTrue(game.getPlayers().get(i).getCards().size()==deck.getCards().size()/players.size());
+            
+            // Test each card is unique,, no duplicate
+            for(int j=0;j<game.getPlayers().get(i).getCards().size();j++) {
+            	Card card=game.getPlayers().get(i).getCards().get(j);
+            	int value=getCardIndex(card);
+    			assertTrue(value>0);
+    			assertTrue(value<=52);
+    			assertTrue(hs.add(value));
+            }
+        }        
+        // Test undealted card=0
+        assertTrue(game.getUndealtCards().size()==0);
+       
+        
+    }
+    
+    //test no player
+    //deal no card to player and undealtCrads=deck
+    @Test
+    public void dealNoPlayer() {
+        // get a deck of cards
+        Deck deck = new Deck();
+
+        //generate 3 players
+        List<Player> players = new ArrayList<>();
+        //createPlayers(players,0);
+
+        Game game = CardDealer.deal(players, deck);
+        assertNotNull(game);
+        
+        //Test no player and deck of card equal before and after
+        assertTrue(game.getPlayers().size()==0);
+        assertEquals(game.getUndealtCards(), deck.getCards());
+    }
+    
+    //test players are more than cards
+    //deal no card to player and undealtCrads=deck
+    @Test
+    public void dealPlayerMoreThanCards() {
+        // get a deck of cards
+        Deck deck = new Deck();
+
+        //generate 53 players
+        List<Player> players = new ArrayList<>();
+        createPlayers(players,53);
+
+        Game game = CardDealer.deal(players, deck);
+        assertNotNull(game);
+        
+        //Test card to player and deck of card equal before and after
+        assertTrue(game.getPlayers().get(0).getCards().size()==0);
+        assertTrue(game.getPlayers().get(52).getCards().size()==0);
+        assertEquals(game.getUndealtCards(), deck.getCards());
+    }
+
+    /**
+     * TODO: Test Engineering Open Code Challenge
+     * Verify that {@link CardDealer#deal(List, Deck, int)} correctly deals the specified number of {@link Card}s
+     * to each of the {@link Player}s provided. Don't just do a happy path approach!
+     */
+    // Test deal cards to 5 players with 5 cards
+    @Test
+    public void dealNumberOfCardsPerPlayer() {
+        // get a deck of cards
+        Deck deck = new Deck();
+
+        // generate 5 players
+        List<Player> players = new ArrayList<>();
+        createPlayers(players,5);
+
+        int numberOfCards = 5;
+
+        Game game = CardDealer.deal(players, deck, numberOfCards);
+        assertNotNull(game);
+
+        // Test each player gets 5 cards
+        // Test all cards in players and undealted cards equal a complete set of deck 
+        HashSet<Integer> hs = new HashSet<Integer>();
+        int remainingCards=deck.getCards().size();
+        for(int i=0;i<players.size();i++) {
+        	assertTrue(game.getPlayers().get(i).getCards().size()==numberOfCards);
+            remainingCards-=game.getPlayers().get(i).getCards().size();
+            // Test each card is unique,, no duplicate
+            for(int j=0;j<game.getPlayers().get(i).getCards().size();j++) {
+            	Card card=game.getPlayers().get(i).getCards().get(j);
+            	int value=getCardIndex(card);
+    			assertTrue(value>0);
+    			assertTrue(value<=52);
+    			assertTrue(hs.add(value));
+            }
+        }        
+        // Test undealted card=52-5*5
+        assertTrue(game.getUndealtCards().size()==remainingCards);
+        // Test each card is unique,, no duplicate
+        for(int j=0;j<game.getUndealtCards().size();j++) {
+        	Card card=game.getUndealtCards().get(j);
+        	int value=getCardIndex(card);
+			assertTrue(value>0);
+			assertTrue(value<=52);
+			assertTrue(hs.add(value));
+        }
+    }
+    
+    // Test deal 13 cards to 4 players
+    // Test no unDealted card
+    @Test
+    public void deal13Cardsto4Player() {
+        // get a deck of cards
+        Deck deck = new Deck();
+
+        //generate 4 players
+        List<Player> players = new ArrayList<>();
+        createPlayers(players,4);
+        
+        int numberOfCards = 13;
+
+        Game game = CardDealer.deal(players, deck,numberOfCards);
+        assertNotNull(game);
+
+        // Test each player gets 4 cards
+        // Test all cards in players and undealted cards equal a complete set of deck 
+        HashSet<Integer> hs = new HashSet<Integer>();
+        for(int i=0;i<players.size();i++) {
+        	assertTrue(game.getPlayers().get(i).getCards().size()==deck.getCards().size()/players.size());
+            
+            // Test each card is unique,, no duplicate
+            for(int j=0;j<game.getPlayers().get(i).getCards().size();j++) {
+            	Card card=game.getPlayers().get(i).getCards().get(j);
+            	int value=getCardIndex(card);
+    			assertTrue(value>0);
+    			assertTrue(value<=52);
+    			assertTrue(hs.add(value));
+            }
+        }        
+        // Test undealted card=0
+        assertTrue(game.getUndealtCards().size()==0);
+       
+        
+    }
+    
+    //test no player
+    //deal no card to player and undealtCrads=deck
+    @Test
+    public void dealNumberOfCardsPerPlayer_noPlayer() {
+        // get a deck of cards
+        Deck deck = new Deck();
+
+        //generate 3 players
+        List<Player> players = new ArrayList<>();
+        //createPlayers(players,0);
+        
+        int numberOfCards = 5;
+
+        Game game = CardDealer.deal(players, deck,numberOfCards);
+        assertNotNull(game);
+        
+        //Test no player and deck of card equal before and after
+        assertTrue(game.getPlayers().size()==0);
+        assertEquals(game.getUndealtCards(), deck.getCards());
+    }
+    
+    //test numberOfCards=0
+    //deal no card to player and undealtCrads=deck
+    @Test
+    public void dealZeroNumberOfCards() {
+        // get a deck of cards
+        Deck deck = new Deck();
+
+        //generate 4 players
+        List<Player> players = new ArrayList<>();
+        createPlayers(players,4);
+        
+        int numberOfCards = 0;
+
+        Game game = CardDealer.deal(players, deck,numberOfCards);
+        assertNotNull(game);
+        
+        //Test card to player and deck of card equal before and after
+        assertTrue(game.getPlayers().get(0).getCards().size()==0);
+        assertTrue(game.getPlayers().get(3).getCards().size()==0);
+        assertEquals(game.getUndealtCards(), deck.getCards());
+    }
+    
+    //test numberOfCards*players>52
+    //deal no card to player and undealtCrads=deck
+    @Test
+    public void dealTooManyNumberOfCards() {
+        // get a deck of cards
+        Deck deck = new Deck();
+
+        //generate 4 players
+        List<Player> players = new ArrayList<>();
+        createPlayers(players,6);
+        
+        int numberOfCards = 9;
+
+        Game game = CardDealer.deal(players, deck,numberOfCards);
+        assertNotNull(game);
+        
+        //Test card to player and deck of card equal before and after
+        assertTrue(game.getPlayers().get(0).getCards().size()==0);
+        assertTrue(game.getPlayers().get(3).getCards().size()==0);
+        assertEquals(game.getUndealtCards(), deck.getCards());
+    }
+    
+    //create players
+    public void createPlayers(List<Player> players, int n) {
+    	for(int i=0;i<n;i++) {
+    		players.add(new Player("Player"+String.valueOf(i)));
+    	}
+    }
+    
+    //return card index, index between 1 to 52
+    public int getCardIndex(Card card) {
+    	int suit=0;
+		if(card.getSuit().getDisplayName().equals("Hearts")){
+			suit=0;	
+		}else if(card.getSuit().getDisplayName().equals("Diamonds")){
+			suit=1;	
+		}
+		else if(card.getSuit().getDisplayName().equals("Spades")){
+			suit=2;	
+		}
+		else if(card.getSuit().getDisplayName().equals("Clubs")){
+			suit=3;	
+		}
+		return suit*13+card.getValue();
+    
+    }
+
+
+
+}
